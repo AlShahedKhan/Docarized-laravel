@@ -72,7 +72,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd /home/yourapp
+          cd /var/www/Docarized-laravel
           git pull origin main
           composer install --no-dev
           php artisan migrate --force
