@@ -1,20 +1,16 @@
-Absolutely! Here's your full **Dockerized Laravel with Redis Setup** guide formatted as a clean, professional GitHub `README.md` file. You can copy and paste this directly into your repository:
+# 🚀 Dockerized Laravel Application with MySQL, Nginx, Redis, and Vite
+
+This guide provides a fully Dockerized setup for Laravel using **PHP-FPM**, **MySQL**, **Nginx**, **Redis**, and **Vite**, complete with configuration files, environment variables, and best practices.
 
 ---
 
-````markdown
-# 🚀 Dockerized Laravel Application with MySQL, Nginx, and Redis
+## 🪰 Prerequisites
 
-This guide provides a fully Dockerized setup for Laravel using **PHP-FPM**, **MySQL**, **Nginx**, and **Redis**, complete with configuration files, environment variables, and best practices.
-
----
-
-## 🧰 Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed
-- Docker Compose (included with Docker Desktop)
-- Git (optional, for version control)
-- Composer
+* [Docker Desktop](https://www.docker.com/products/docker-desktop)
+* Docker Compose (comes with Docker Desktop)
+* Node.js & npm (for Vite)
+* Composer
+* Git (optional)
 
 ---
 
@@ -22,17 +18,18 @@ This guide provides a fully Dockerized setup for Laravel using **PHP-FPM**, **My
 
 ```plaintext
 my-laravel-project/
-│
 ├── Dockerfile
 ├── docker-compose.yml
-├── nginx.conf
+├── docker-compose/
+│   └── nginx/
+│       └── default.conf
 ├── .env
 └── Laravel application files...
-````
+```
 
 ---
 
-## 📦 Installation
+## 📆 Installation & Setup
 
 ### 1. Create Laravel Project
 
@@ -41,26 +38,18 @@ composer create-project laravel/laravel my-laravel-project
 cd my-laravel-project
 ```
 
-### 2. Add Docker Setup Files
-
-#### Dockerfile
+### 2. Dockerfile
 
 ```Dockerfile
-FROM php:8.3-fpm
+FROM php:8.2-fpm
 
 ARG user
 ARG uid
 
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    redis \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip \
+    npm nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
@@ -77,9 +66,7 @@ EXPOSE 9000
 CMD ["php-fpm"]
 ```
 
----
-
-#### docker-compose.yml
+### 3. docker-compose.yml
 
 ```yaml
 version: '3.8'
@@ -108,7 +95,7 @@ services:
       - "8080:80"
     volumes:
       - ./:/var/www
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./docker-compose/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
     networks:
@@ -147,9 +134,7 @@ volumes:
   dbdata:
 ```
 
----
-
-#### nginx.conf
+### 4. Nginx Config (default.conf)
 
 ```nginx
 server {
@@ -174,26 +159,23 @@ server {
 
 ## 🚀 Getting Started
 
-### Step 1: Build & Start Services
+### Step 1: Build & Start Containers
 
 ```bash
 docker-compose up -d --build
 ```
 
----
-
-### Step 2: Laravel Initialization
+### Step 2: Laravel Setup
 
 ```bash
 docker-compose exec app composer install
 docker-compose exec app cp .env.example .env
 docker-compose exec app php artisan key:generate
 docker-compose exec app php artisan migrate
+docker-compose exec app php artisan storage:link
 ```
 
----
-
-### Step 3: Update `.env` File
+### Step 3: Update `.env`
 
 ```dotenv
 APP_NAME=Laravel
@@ -217,11 +199,9 @@ REDIS_CLIENT=predis
 REDIS_HOST=redis
 REDIS_PASSWORD=null
 REDIS_PORT=6379
+
+VITE_APP_NAME="${APP_NAME}"
 ```
-
-> 💡 Use `REDIS_CLIENT=phpredis` only if the PHP extension is installed. Otherwise, stick to `predis` and install via Composer.
-
----
 
 ### Step 4: Install Redis Client
 
@@ -229,15 +209,16 @@ REDIS_PORT=6379
 docker-compose exec app composer require predis/predis
 ```
 
+### Step 5: Build Vite Assets
+
+```bash
+npm install
+npm run dev   # or npm run build for production
+```
+
 ---
 
-### Step 5: Access Your App
-
-Visit [http://localhost:8080](http://localhost:8080)
-
----
-
-## 🧪 Testing Redis
+## 🧰 Testing Redis
 
 ```bash
 docker-compose exec app php artisan tinker
@@ -249,61 +230,38 @@ docker-compose exec app php artisan tinker
 
 ---
 
-## 🛠️ Troubleshooting
+## 🛠️ Common Commands
 
-| Command                        | Description                |
-| ------------------------------ | -------------------------- |
-| `docker-compose ps`            | Check status of containers |
-| `docker-compose logs -f`       | View live container logs   |
-| `docker-compose exec app bash` | Access Laravel container   |
-| `php artisan config:cache`     | Refresh Laravel config     |
-| `docker-compose down -v`       | Rebuild from scratch       |
-
----
-
-## 🧱 Best Practices
-
-* Use `.env` to sync with Docker services
-* Use non-root DB users in production
-* Use Laravel Horizon for Redis-based queues
-* Keep Docker images updated
-* Mount persistent volumes only when needed
+| Command                        | Description                  |
+| ------------------------------ | ---------------------------- |
+| `docker-compose ps`            | Check containers             |
+| `docker-compose logs -f`       | Follow logs                  |
+| `docker-compose exec app bash` | Shell into Laravel container |
+| `php artisan config:cache`     | Cache config                 |
+| `docker-compose down -v`       | Remove volumes & containers  |
 
 ---
 
-## ✅ What's Included
+## 📅 What's Included
 
-* ✅ Laravel 11+
-* ✅ PHP 8.3 (FPM)
-* ✅ MySQL 8.0
-* ✅ Redis
-* ✅ Nginx
-* ✅ Docker Compose 3.8
-* ✅ Support for Laravel queues, cache, and session drivers
-
----
-
-## 🏁 Final Words
-
-You now have a clean, professional, and scalable **Docker environment for Laravel** — ideal for both development and CI/CD workflows.
-
-Feel free to fork, improve, or share this setup!
+* Laravel 11+
+* PHP 8.2 (FPM)
+* MySQL 8.0
+* Redis
+* Nginx
+* Vite frontend setup
+* Docker Compose 3.8
 
 ---
 
-### 👏 Contributions
+## 💪 Final Notes
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+You now have a complete, production-ready **Docker environment for Laravel** that supports Redis, Vite, MySQL, and Nginx.
+
+Let me know if you want this as a PDF, deploy-ready GitHub template, or with GitHub Actions for CI/CD!
 
 ---
 
-### 📄 License
+## 📄 License
 
 [MIT](./LICENSE)
-
-```
-
----
-
-Let me know if you want this converted to a downloadable `README.md` file or need help turning this into a GitHub template repo.
-```
